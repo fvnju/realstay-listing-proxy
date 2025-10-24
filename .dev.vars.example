@@ -1,0 +1,7 @@
+# Local development secrets
+# Copy this file to .dev.vars or .env and fill in your actual credentials
+# .dev.vars is gitignored and will not be committed
+
+# Backend authentication credentials
+BACKEND_EMAIL=your-backend-email@example.com
+BACKEND_PASSWORD=your-backend-password

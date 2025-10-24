@@ -1,0 +1,32 @@
+{
+  "name": "listing-microservice",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "deploy:staging": "wrangler deploy --env staging",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:migrate:staging": "wrangler d1 migrations apply DB --env staging",
+    "db:migrate:production": "wrangler d1 migrations apply DB --env production --remote",
+    "db:migrate:last:local": "bash -lc 'LATEST=$(ls -1t migrations/*.sql | head -n 1) && echo Applying $LATEST && wrangler d1 execute DB --local --file \"$LATEST\"'",
+    "db:migrate:last:remote": "bash -lc 'LATEST=$(ls -1t migrations/*.sql | head -n 1) && echo Applying $LATEST && wrangler d1 execute DB --remote --file \"$LATEST\"'",
+    "db:studio": "drizzle-kit studio",
+    "db:execute": "wrangler d1 execute DB --local --file"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.7.4",
+    "@libsql/client": "^0.15.15",
+    "dayjs": "^1.11.18",
+    "drizzle-orm": "^0.44.6",
+    "hono": "^4.10.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "drizzle-kit": "^0.31.5",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.4.0"
+  }
+}
