@@ -18,6 +18,16 @@ const syncRoutes = new Hono<{
  */
 syncRoutes.post("/sync-listings", async (c) => {
   const db = new DatabaseService(c.env);
+  if (!c.env.MAIN_BACKEND_URL) {
+    return c.json(
+      {
+        error: "Configuration error",
+        message: "MAIN_BACKEND_URL must be set",
+      },
+      500
+    );
+  }
+
   const backendClient = new BackendClient(c.env.MAIN_BACKEND_URL, c.env.CACHE);
 
   // Get credentials from secrets
@@ -152,7 +162,7 @@ syncRoutes.post("/auto-categorize", async (c) => {
     const ambiguousListings = [];
 
     for (const listing of allListings) {
-      const detectedType = autoDetectTypeFromCostCycle(listing.costCycle);
+      const detectedType = listing.costCycle !== null ? autoDetectTypeFromCostCycle(listing.costCycle) : null;
 
       if (detectedType !== null) {
         // Clear case - daily/weekly → shortlet, yearly → rent
@@ -166,6 +176,9 @@ syncRoutes.post("/auto-categorize", async (c) => {
       } else {
         // Ambiguous case (monthly or unknown)
         ambiguous++;
+        if (listing.costCycle === null) {
+          throw new Error(`Listing ${listing.id} has null cost_cycle - cannot determine type`);
+        }
         const suggestion = getSuggestedType(listing.costCycle);
         
         ambiguousListings.push({

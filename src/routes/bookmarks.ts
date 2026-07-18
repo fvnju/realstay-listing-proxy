@@ -74,7 +74,7 @@ bookmarkRoutes.get("/", async (c) => {
 // Sync saved listings from backend
 bookmarkRoutes.post("/sync", async (c) => {
   const userId = c.get("userId");
-  const userAccessToken = c.get("userAccessToken");
+  const userAccessToken = c.req.header("Authorization")?.replace("Bearer ", "");
 
   if (!userId || !userAccessToken) {
     return c.json({ error: "Unauthorized" }, 401);
@@ -82,6 +82,16 @@ bookmarkRoutes.post("/sync", async (c) => {
 
   const db = new DatabaseService(c.env);
   const cache = new CacheService(c.env);
+  if (!c.env.MAIN_BACKEND_URL) {
+    return c.json(
+      {
+        error: "Configuration error",
+        message: "MAIN_BACKEND_URL must be set",
+      },
+      500
+    );
+  }
+
   const backendClient = new BackendClient(c.env.MAIN_BACKEND_URL, c.env.CACHE);
 
   try {
@@ -164,7 +174,7 @@ const addBookmarkSchema = z.object({
 
 bookmarkRoutes.post("/", zValidator("json", addBookmarkSchema), async (c) => {
   const userId = c.get("userId");
-  const userAccessToken = c.get("userAccessToken");
+  const userAccessToken = c.req.header("Authorization")?.replace("Bearer ", "");
   const { listingId } = c.req.valid("json");
 
   if (!userId || !userAccessToken) {
@@ -173,6 +183,15 @@ bookmarkRoutes.post("/", zValidator("json", addBookmarkSchema), async (c) => {
 
   const db = new DatabaseService(c.env);
   const cache = new CacheService(c.env);
+  if (!c.env.MAIN_BACKEND_URL) {
+    return c.json(
+      {
+        error: "Configuration error",
+        message: "MAIN_BACKEND_URL must be set",
+      },
+      500
+    );
+  }
   const backendClient = new BackendClient(c.env.MAIN_BACKEND_URL, c.env.CACHE);
 
   try {
@@ -228,7 +247,7 @@ bookmarkRoutes.post("/", zValidator("json", addBookmarkSchema), async (c) => {
 // Remove a bookmark
 bookmarkRoutes.delete("/:listingId", async (c) => {
   const userId = c.get("userId");
-  const userAccessToken = c.get("userAccessToken");
+  const userAccessToken = c.req.header("Authorization")?.replace("Bearer ", "");
   const listingId = c.req.param("listingId");
 
   if (!userId || !userAccessToken) {
@@ -237,6 +256,15 @@ bookmarkRoutes.delete("/:listingId", async (c) => {
 
   const db = new DatabaseService(c.env);
   const cache = new CacheService(c.env);
+  if (!c.env.MAIN_BACKEND_URL) {
+    return c.json(
+      {
+        error: "Configuration error",
+        message: "MAIN_BACKEND_URL must be set",
+      },
+      500
+    );
+  }
   const backendClient = new BackendClient(c.env.MAIN_BACKEND_URL, c.env.CACHE);
 
   try {

@@ -5,65 +5,65 @@
   "compatibility_date": "2025-10-22",
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "listings_db",
       "database_id": "cd9ee598-cdc2-4418-8376-25ad76867c40",
-      "preview_database_id": "local-database-id"
-    }
+      "preview_database_id": "local-database-id",
+    },
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
       "id": "af2370e8ae7143d7a27f0f8e1fc622fb",
-      "preview_id": "local-cache-namespace"
-    }
+      "preview_id": "local-cache-namespace",
+    },
   ],
   "vars": {
     "ENVIRONMENT": "development",
-    "MAIN_BACKEND_URL": "https://real-stay-api.onrender.com"
+    "MAIN_BACKEND_URL": "https://realstay-api-staging.edgetechino.com",
   },
   "env": {
     "production": {
       "vars": {
-        "ENVIRONMENT": "production"
+        "ENVIRONMENT": "production",
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "listings_db",
-          "database_id": "cd9ee598-cdc2-4418-8376-25ad76867c40"
-        }
+          "database_id": "cd9ee598-cdc2-4418-8376-25ad76867c40",
+        },
       ],
       "kv_namespaces": [
         {
           "binding": "CACHE",
           "id": "af2370e8ae7143d7a27f0f8e1fc622fb",
-          "preview_id": "production-cache-namespace"
-        }
-      ]
+          "preview_id": "production-cache-namespace",
+        },
+      ],
     },
     "staging": {
       "vars": {
-        "ENVIRONMENT": "staging"
+        "ENVIRONMENT": "staging",
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "listings_db_staging",
-          "database_id": "staging-database-id"
-        }
+          "database_id": "staging-database-id",
+        },
       ],
       "kv_namespaces": [
         {
           "binding": "CACHE",
           "id": "staging-cache-namespace",
-          "preview_id": "staging-cache-namespace"
-        }
-      ]
-    }
-  }
+          "preview_id": "staging-cache-namespace",
+        },
+      ],
+    },
+  },
 }

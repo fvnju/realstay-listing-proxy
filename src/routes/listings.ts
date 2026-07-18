@@ -15,7 +15,10 @@ type Variables = {
   userId?: string;
 };
 
-const listingRoutes = new Hono<{ Bindings: CloudflareBindings; Variables: Variables }>();
+const listingRoutes = new Hono<{
+  Bindings: CloudflareBindings;
+  Variables: Variables;
+}>();
 
 // Get listing by ID
 listingRoutes.get("/:id", extractUserToken, async (c) => {
@@ -53,53 +56,61 @@ listingRoutes.get("/:id", extractUserToken, async (c) => {
         error: "Failed to fetch listing",
         message: error instanceof Error ? error.message : String(error),
       },
-      500
+      500,
     );
   }
 });
 
 // Search listings
-listingRoutes.get("/", extractUserToken, zValidator("query", SearchParamsSchema), async (c) => {
-  const params = c.req.valid("query");
-  const userId = c.get("userId"); // Optional - may be undefined
+listingRoutes.get(
+  "/",
+  extractUserToken,
+  zValidator("query", SearchParamsSchema),
+  async (c) => {
+    const params = c.req.valid("query");
+    const userId = c.get("userId"); // Optional - may be undefined
 
-  const db = new DatabaseService(c.env);
-  const cache = new CacheService(c.env);
-  const listingService = new ListingService(db, cache);
+    const db = new DatabaseService(c.env);
+    const cache = new CacheService(c.env);
+    const listingService = new ListingService(db, cache);
 
-  try {
-    const results = await listingService.searchListings(params);
+    try {
+      const results = await listingService.searchListings(params);
 
-    // Add bookmark status if user is authenticated
-    if (userId && results.listings.length > 0) {
-      const listingIds = results.listings.map((l: any) => l.id);
-      const bookmarkedIds = await db.getBookmarkedListingIds(userId, listingIds);
+      // Add bookmark status if user is authenticated
+      if (userId && results.listings.length > 0) {
+        const listingIds = results.listings.map((l: any) => l.id);
+        const bookmarkedIds = await db.getBookmarkedListingIds(
+          userId,
+          listingIds,
+        );
 
-      // Serialize and add isBookmarked field to each listing
-      results.listings = results.listings.map((listing: any) => ({
-        ...serializeListing(listing),
-        isBookmarked: bookmarkedIds.has(listing.id),
-      })) as any;
-    } else {
-      // Serialize and add isBookmarked: false for unauthenticated users
-      results.listings = results.listings.map((listing: any) => ({
-        ...serializeListing(listing),
-        isBookmarked: false,
-      })) as any;
+        // Serialize and add isBookmarked field to each listing
+        results.listings = results.listings.map((listing: any) => ({
+          ...serializeListing(listing),
+          isBookmarked: bookmarkedIds.has(listing.id),
+        })) as any;
+      } else {
+        // Serialize and add isBookmarked: false for unauthenticated users
+        results.listings = results.listings.map((listing: any) => ({
+          ...serializeListing(listing),
+          isBookmarked: false,
+        })) as any;
+      }
+
+      return c.json(results);
+    } catch (error) {
+      console.error("Failed to search listings:", error);
+      return c.json(
+        {
+          error: "Failed to search listings",
+          message: error instanceof Error ? error.message : String(error),
+        },
+        500,
+      );
     }
-
-    return c.json(results);
-  } catch (error) {
-    console.error("Failed to search listings:", error);
-    return c.json(
-      {
-        error: "Failed to search listings",
-        message: error instanceof Error ? error.message : String(error),
-      },
-      500
-    );
-  }
-});
+  },
+);
 
 // Create new listing (requires user authentication)
 listingRoutes.post(
@@ -109,10 +120,22 @@ listingRoutes.post(
   zValidator("json", CreateListingSchema),
   async (c) => {
     const data = c.req.valid("json");
-    const userAccessToken = c.get('userAccessToken') as string; // Ensured by requireAuth middleware
+    const userAccessToken = c.get("userAccessToken") as string; // Ensured by requireAuth middleware
 
     const db = new DatabaseService(c.env);
-    const backendClient = new BackendClient(c.env.MAIN_BACKEND_URL, c.env.CACHE);
+    if (!c.env.MAIN_BACKEND_URL) {
+      return c.json(
+        {
+          error: "Main backend URL is not configured",
+        },
+        500,
+      );
+    }
+
+    const backendClient = new BackendClient(
+      c.env.MAIN_BACKEND_URL,
+      c.env.CACHE,
+    );
 
     try {
       // Transform our schema to backend schema
@@ -120,17 +143,18 @@ listingRoutes.post(
 
       // Forward the listing creation to the main backend with user's token
       const backendResponse: any = await backendClient.forwardUserRequest<any>(
-        '/listing/create',
+        "/listing/create",
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(backendPayload),
         },
-        userAccessToken
+        userAccessToken,
       );
 
       // Extract the created listing from backend response
       const backendListing = backendResponse?.data || backendResponse;
-      const listingId = backendListing?.id || backendListing?._id || crypto.randomUUID();
+      const listingId =
+        backendListing?.id || backendListing?._id || crypto.randomUUID();
 
       // Transform backend response to our schema and cache locally
       const listingData: NewListing = fromBackendSchema({
@@ -148,7 +172,7 @@ listingRoutes.post(
           message: "Listing created successfully and synced to main backend",
           data: listing,
         },
-        201
+        201,
       );
     } catch (error) {
       console.error("Failed to create listing:", error);
@@ -157,10 +181,10 @@ listingRoutes.post(
           error: "Failed to create listing",
           message: error instanceof Error ? error.message : String(error),
         },
-        500
+        500,
       );
     }
-  }
+  },
 );
 
 // Update listing
@@ -250,10 +274,10 @@ listingRoutes.put(
           error: "Failed to update listing",
           message: error instanceof Error ? error.message : String(error),
         },
-        500
+        500,
       );
     }
-  }
+  },
 );
 
 // Delete listing
@@ -286,7 +310,7 @@ listingRoutes.delete("/:id", async (c) => {
         error: "Failed to delete listing",
         message: error instanceof Error ? error.message : String(error),
       },
-      500
+      500,
     );
   }
 });
