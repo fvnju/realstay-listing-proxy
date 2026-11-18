@@ -2,6 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "listing-microservice",
   "main": "src/index.ts",
+  // Turned off on 2026-11-18: the RealStay backend has all the features.
+  "workers_dev": false,
   "compatibility_date": "2025-10-22",
   "observability": {
     "enabled": true,
